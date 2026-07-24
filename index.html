@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bosun (Theo) Park</title>
+<style>
+  :root {
+    --bg: #fdfcf9;
+    --surface: #ffffff;
+    --ink: #1c1a17;
+    --ink-soft: #55504a;
+    --line: #ece7de;
+    --honey: #d99400;
+    --honey-deep: #a86f00;
+    --forest: #2f6b4f;
+    --shadow: 0 1px 3px rgba(40,34,22,.06), 0 8px 30px rgba(40,34,22,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14130f;
+      --surface: #1c1a15;
+      --ink: #f3efe6;
+      --ink-soft: #b3ab9d;
+      --line: #2c2921;
+      --honey: #f0b429;
+      --honey-deep: #f0b429;
+      --forest: #6cc79b;
+      --shadow: 0 1px 3px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14130f; --surface: #1c1a15; --ink: #f3efe6; --ink-soft: #b3ab9d;
+    --line: #2c2921; --honey: #f0b429; --honey-deep: #f0b429; --forest: #6cc79b;
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] {
+    --bg: #fdfcf9; --surface: #ffffff; --ink: #1c1a17; --ink-soft: #55504a;
+    --line: #ece7de; --honey: #d99400; --honey-deep: #a86f00; --forest: #2f6b4f;
+    --shadow: 0 1px 3px rgba(40,34,22,.06), 0 8px 30px rgba(40,34,22,.05);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--honey-deep); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---- nav ---- */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 1.5rem;
+    padding: .9rem clamp(1rem, 5vw, 4rem);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: saturate(1.2) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .brand { font-weight: 700; letter-spacing: -.01em; margin-right: auto; display: flex; align-items: center; gap: .5rem; }
+  nav .brand svg { width: 20px; height: 20px; }
+  nav a.link { color: var(--ink-soft); font-size: .92rem; }
+  nav a.link:hover { color: var(--honey-deep); text-decoration: none; }
+  @media (max-width: 640px) { nav a.link { display: none; } nav a.link.contact { display: inline; } }
+
+  main { max-width: 820px; margin: 0 auto; padding: 0 clamp(1rem, 5vw, 2rem); }
+
+  /* ---- hero ---- */
+  header.hero {
+    position: relative; overflow: hidden;
+    padding: clamp(3.5rem, 12vh, 7rem) 0 clamp(3rem, 8vh, 5rem);
+  }
+  .honeycomb {
+    position: absolute; inset: 0; z-index: 0; opacity: .5;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+            mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+  }
+  .hero-inner { position: relative; z-index: 1; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--forest); font-weight: 600; font-size: .82rem;
+    letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1.1rem;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.4rem, 7vw, 4rem); line-height: 1.05;
+    letter-spacing: -.02em; margin: 0 0 1.1rem; font-weight: 600;
+  }
+  .subline {
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem); color: var(--ink-soft);
+    max-width: 44ch; margin: 0 0 1.6rem; line-height: 1.5;
+  }
+  .subline em { color: var(--honey-deep); font-style: normal; font-weight: 600; }
+  .cta { display: flex; flex-wrap: wrap; gap: .7rem; }
+  .btn {
+    display: inline-block; padding: .6rem 1.15rem; border-radius: 999px;
+    font-size: .92rem; font-weight: 600; transition: transform .12s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn-primary { background: var(--honey); color: #241a00; }
+  .btn-ghost { border: 1px solid var(--line); color: var(--ink); }
+
+  /* ---- sections ---- */
+  section { padding: clamp(2.5rem, 6vh, 3.5rem) 0; border-top: 1px solid var(--line); }
+  section h2 {
+    font-size: 1.6rem; letter-spacing: -.01em; margin: 0 0 1.2rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  section h2::before {
+    content: ""; width: 12px; height: 13px; flex: none;
+    background: var(--honey);
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  }
+  .lead { font-size: 1.08rem; color: var(--ink-soft); }
+  .placeholder { color: var(--honey-deep); font-size: .78rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+
+  .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 1.2rem 1.25rem; box-shadow: var(--shadow);
+  }
+  .card h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: .93rem; }
+  .card .tag { display: inline-block; margin-top: .7rem; font-size: .72rem; font-weight: 600; color: var(--forest); letter-spacing: .04em; text-transform: uppercase; }
+
+  ul.research { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.1rem; }
+  ul.research li { padding-left: 1.4rem; position: relative; }
+  ul.research li::before {
+    content: ""; position: absolute; left: 0; top: .55em; width: 9px; height: 10px;
+    background: var(--forest);
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  }
+  ul.research strong { display: block; font-size: 1.02rem; }
+  ul.research span { color: var(--ink-soft); font-size: .93rem; }
+
+  footer { border-top: 1px solid var(--line); padding: 2rem 0 3rem; color: var(--ink-soft); font-size: .88rem; text-align: center; }
+
+  .theme-toggle {
+    background: none; border: 1px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; width: 34px; height: 34px; cursor: pointer; font-size: 1rem;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l8.66 5v10L12 22 3.34 17V7L12 2z" fill="var(--honey)"/></svg>
+    Bosun&nbsp;Park
+  </span>
+  <a class="link" href="#about">About</a>
+  <a class="link" href="#research">Research</a>
+  <a class="link" href="#projects">Projects</a>
+  <a class="link" href="#cv">CV</a>
+  <a class="link contact" href="#contact">Contact</a>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">☾</button>
+</nav>
+
+<header class="hero">
+  <svg class="honeycomb" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="hc" width="56" height="96" patternUnits="userSpaceOnUse" patternTransform="scale(.9)">
+        <path d="M28 0l24 14v28L28 56 4 42V14L28 0z" fill="none" stroke="var(--honey)" stroke-width="1.1" opacity=".22"/>
+        <path d="M0 48l24 14v28L0 104M56 48l-24 14v28L56 104" fill="none" stroke="var(--honey)" stroke-width="1.1" opacity=".22"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#hc)"/>
+  </svg>
+  <main class="hero-inner">
+    <span class="eyebrow">Bosun&nbsp;·&nbsp;Theo&nbsp;·&nbsp;Park</span>
+    <h1>On the side of<br>living things.</h1>
+    <p class="subline">I'm a physicist studying how matter learns to remember — the <em>physics of information, order, and memory</em>, from plasmas to minds.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#research">Read my research</a>
+      <a class="btn btn-ghost" href="#contact">Get in touch</a>
+    </div>
+  </main>
+</header>
+
+<main>
+
+  <section id="about">
+    <h2>About</h2>
+    <p class="lead">
+      <span class="placeholder">Draft — your voice goes here.</span><br>
+      I study physics at UC San Diego, where I think about how living and physical systems
+      hold their order against a universe that pulls everything toward disorder — how a plasma,
+      a swarm, or a mind processes information and remembers. I believe the best science is done
+      out of love: for the world, for the people in it, and for the strange fact that matter can
+      wake up and ask questions about itself. I like bees, trees, hard problems, and staying on
+      the side of living things.
+    </p>
+  </section>
+
+  <section id="research">
+    <h2>Research</h2>
+    <p class="lead" style="margin-bottom:1.6rem">
+      <span class="placeholder">Draft — edit / trim to what you want public.</span>
+    </p>
+    <ul class="research">
+      <li>
+        <strong>Turbulence spreading &amp; coherent structure in plasmas</strong>
+        <span>Vortex / front dynamics with Prof. P. Diamond — how a coherent structure controls
+        the spreading of turbulence (Dedalus simulations, cell-scale scans). Paper in progress.</span>
+      </li>
+      <li>
+        <strong>Fusion &amp; AI</strong>
+        <span>Summer research at the Korea Institute of Fusion Energy (KFE), Fusion-AI division —
+        toward a star in a bottle.</span>
+      </li>
+      <li>
+        <strong>Physics of memory &amp; unconventional computing</strong>
+        <span>Open quantum systems and memory-based (beyond-Turing) computation — how physical
+        systems store and use their past. (PHYS 130B open-quantum-systems project; NQC / memnetwork.)</span>
+      </li>
+    </ul>
+  </section>
+
+  <section id="projects">
+    <h2>Projects</h2>
+    <p class="lead" style="margin-bottom:1.4rem">
+      <span class="placeholder">Draft — swap in links / screenshots later.</span>
+    </p>
+    <div class="cards">
+      <div class="card">
+        <h3>DSConstruction</h3>
+        <p>Built and shipped a live business website for a family construction company.</p>
+        <span class="tag">Web · Live</span>
+      </div>
+      <div class="card">
+        <h3>Trading research</h3>
+        <p>Systematic paper-trading engine with out-of-sample validation and risk gates.</p>
+        <span class="tag">Quant · Python</span>
+      </div>
+      <div class="card">
+        <h3>Not Just a Dream</h3>
+        <p>An idea for matching people by their dreams into real projects and community.</p>
+        <span class="tag">Concept</span>
+      </div>
+      <div class="card">
+        <h3>Making things</h3>
+        <p>3D design &amp; printing — learning to bring physical objects out of the screen.</p>
+        <span class="tag">CAD · Fabrication</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="cv">
+    <h2>CV</h2>
+    <p class="lead">
+      <span class="placeholder">Add a PDF later.</span><br>
+      A full curriculum vitae is available on request.
+      <a href="#" aria-disabled="true">Download PDF →</a> <em style="color:var(--ink-soft)">(coming soon)</em>
+    </p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <p class="lead">
+      The best way to reach me is email:
+      <a href="mailto:bosunpark99@gmail.com">bosunpark99@gmail.com</a>.<br>
+      <span class="placeholder" style="display:inline-block;margin-top:.6rem">Add GitHub / Scholar / LinkedIn links here.</span>
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  © <span id="year">2026</span> Bosun (Theo) Park · bosunpark.xyz · <span style="color:var(--honey-deep)">made with love, on the side of living things</span>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    function apply(t) {
+      root.setAttribute('data-theme', t);
+      btn.textContent = t === 'dark' ? '☀' : '☾';
+      try { localStorage.setItem('theme', t); } catch (e) {}
+    }
+    var saved;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    if (saved) apply(saved);
+    btn.addEventListener('click', function () {
+      var cur = root.getAttribute('data-theme');
+      var isDark = cur ? cur === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      apply(isDark ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>
