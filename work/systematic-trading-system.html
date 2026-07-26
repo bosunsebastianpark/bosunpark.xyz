@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A Self-Learning Trading System — Bosun Park</title>
+<meta name="description" content="An end-to-end automated trading-research platform, and the honest result: after costs, simple strategies didn't beat the market." />
+<style>
+  :root {
+    --ground: #eef1f6; --panel: #ffffff; --ink: #131a26; --ink-soft: #4c586b;
+    --line: #dce2ec; --gold: #c07d16; --gold-bright: #f6ad3c; --steel: #56769a;
+    --red: #c0392b; --green: #2f7d55;
+    --font-display: "Didot", "Hoefler Text", "Playfair Display", Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+    --maxw: 940px; --readw: 680px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ground: #0b0f17; --panel: #121824; --ink: #eef2f8; --ink-soft: #9aa8bd;
+      --line: #222c3c; --gold: #f6ad3c; --gold-bright: #ffc061; --steel: #7d9cbe;
+      --red: #e06a5c; --green: #5cc78e; }
+  }
+  :root[data-theme="dark"] { --ground: #0b0f17; --panel: #121824; --ink: #eef2f8; --ink-soft: #9aa8bd;
+    --line: #222c3c; --gold: #f6ad3c; --gold-bright: #ffc061; --steel: #7d9cbe; --red: #e06a5c; --green: #5cc78e; }
+  :root[data-theme="light"] { --ground: #eef1f6; --panel: #ffffff; --ink: #131a26; --ink-soft: #4c586b;
+    --line: #dce2ec; --gold: #c07d16; --gold-bright: #f6ad3c; --steel: #56769a; --red: #c0392b; --green: #2f7d55; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--font-body); font-size: 17px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; border-radius: 2px; }
+  .mono { font-family: var(--font-mono); letter-spacing: .16em; text-transform: uppercase; font-size: .7rem; }
+
+  nav { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 1.4rem;
+    padding: .95rem clamp(1.2rem, 5vw, 3.5rem);
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: saturate(1.3) blur(14px); border-bottom: 1px solid var(--line); color: var(--ink); }
+  nav .brand { font-weight: 600; margin-right: auto; font-size: 1.02rem; color: var(--ink); }
+  nav .brand .lit { color: var(--gold); }
+  nav a.link { color: var(--ink-soft); font-size: .82rem; letter-spacing: .04em; }
+  nav a.link:hover { color: var(--gold); text-decoration: none; }
+  .theme-toggle { background: none; border: 1px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; width: 32px; height: 32px; cursor: pointer; font-size: .95rem;
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+
+  main { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1.2rem, 5vw, 3.5rem); }
+  .backlink { display: inline-block; margin: 2rem 0 0; color: var(--ink-soft); font-family: var(--font-mono);
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
+  .backlink:hover { color: var(--gold); text-decoration: none; }
+
+  header.head { padding: 1.6rem 0 2rem; }
+  .kicker { color: var(--gold); display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 1.1rem; }
+  .kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, var(--gold-bright), var(--gold)); box-shadow: 0 0 8px rgba(246,173,60,.5); }
+  h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.4rem, 6.5vw, 4rem);
+    line-height: 1.04; letter-spacing: -.015em; margin: 0 0 .8rem; text-wrap: balance; }
+  .dek { font-size: clamp(1.05rem, 2.3vw, 1.3rem); color: var(--ink-soft); max-width: 46ch; margin: 0 0 1.4rem; line-height: 1.42; }
+  .meta { display: flex; flex-wrap: wrap; gap: .5rem .6rem; }
+  .chip { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--steel); border: 1px solid var(--line); border-radius: 999px; padding: .3rem .7rem; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0; }
+  @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 1.1rem 1.2rem; }
+  .stat .n { font-family: var(--font-display); font-size: clamp(1.6rem, 4.5vw, 2.3rem); line-height: 1; letter-spacing: -.01em; }
+  .stat .n.neg { color: var(--red); }
+  .stat .l { color: var(--ink-soft); font-size: .8rem; margin-top: .5rem; line-height: 1.35; }
+
+  figure { margin: 0 0 .4rem; }
+  .hero-fig img, .wide img { width: 100%; border-radius: 8px; display: block; border: 1px solid var(--line); background: #fff; }
+  figcaption { color: var(--ink-soft); font-size: .86rem; margin-top: .7rem; line-height: 1.5; max-width: var(--readw); }
+  figcaption b { color: var(--ink); font-weight: 600; }
+  .wide { margin: 1.8rem 0 .4rem; }
+
+  section.body { padding: 2.4rem 0; }
+  .prose { max-width: var(--readw); }
+  .prose h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.5rem, 3.6vw, 2rem);
+    letter-spacing: -.01em; margin: 2.4rem 0 1rem; }
+  .prose h2:first-child { margin-top: 0; }
+  .prose p { color: var(--ink-soft); margin: 0 0 1.15rem; }
+  .prose strong { color: var(--ink); }
+  ol.steps { max-width: var(--readw); margin: 0 0 1.2rem; padding: 0; list-style: none; counter-reset: s; display: grid; gap: .9rem; }
+  ol.steps li { position: relative; padding-left: 2.6rem; color: var(--ink-soft); counter-increment: s; }
+  ol.steps li::before { content: counter(s); position: absolute; left: 0; top: -.1em;
+    width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 1px solid var(--gold);
+    color: var(--gold); font-family: var(--font-mono); font-size: .78rem;
+    display: flex; align-items: center; justify-content: center; }
+  ol.steps li strong { color: var(--ink); }
+  ul.plain { max-width: var(--readw); margin: 0 0 1.2rem; padding-left: 1.1rem; color: var(--ink-soft); }
+  ul.plain li { margin-bottom: .55rem; }
+  ul.plain strong { color: var(--ink); }
+
+  .pdf-btn { display: inline-flex; align-items: center; gap: .6rem; background: var(--gold); color: #fff;
+    font-weight: 600; font-size: .92rem; padding: .7rem 1.3rem; border-radius: 8px; margin-top: .6rem; }
+  .pdf-btn:hover { text-decoration: none; transform: translateY(-1px); }
+
+  footer { border-top: 1px solid var(--line); padding: 2.4rem 0 3.5rem; margin-top: 2rem; color: var(--ink-soft); }
+  footer .row { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1.2rem, 5vw, 3.5rem);
+    display: flex; flex-wrap: wrap; gap: .8rem 1.5rem; justify-content: space-between; align-items: baseline; }
+  footer .lit { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/">Bo<span class="lit">sun</span> Park</a>
+  <a class="link" href="/#work">Work</a>
+  <a class="link" href="/#contact">Contact</a>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle light / dark">☾</button>
+</nav>
+
+<main>
+  <a class="backlink" href="/#work">← All work</a>
+
+  <header class="head">
+    <span class="kicker mono">Selected Work · Systems &amp; Quant</span>
+    <h1>A Self-Learning Trading System</h1>
+    <p class="dek">I built an end-to-end automated trading-research platform — then used it to test whether simple strategies beat the market. They didn't. Here's the machine, and the honest result.</p>
+    <div class="meta">
+      <span class="chip">Python · SQLite</span>
+      <span class="chip">ccxt · Upbit / Bithumb</span>
+      <span class="chip">Walk-forward backtesting</span>
+      <span class="chip">Real-money paper trading</span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="n neg">−6.6%</div><div class="l">KRW paper return (Bithumb)</div></div>
+    <div class="stat"><div class="n neg">−15.9%</div><div class="l">USD paper return (Coinbase)</div></div>
+    <div class="stat"><div class="n neg">0 / 32</div><div class="l">backtested methods with positive expectancy</div></div>
+    <div class="stat"><div class="n">&lt;50%</div><div class="l">win rate on most symbols</div></div>
+  </div>
+
+  <figure class="hero-fig">
+    <img src="/media/bzp/p-2.jpg" alt="Equity curves for all trading systems, two of three trending downward" />
+    <figcaption><b>The result, up front.</b> Paper-trading equity across all systems. Two of the three lost money — the USD book drew down nearly 17%. I'm leading with this on purpose: the point of the project was to find out the truth, not to sell a win.</figcaption>
+  </figure>
+
+  <section class="body">
+    <div class="prose">
+      <h2>What this is (and isn't)</h2>
+      <p>This isn't a profitable trading bot — and I won't pretend it is. It's a <strong>research platform</strong> I built to answer one question rigorously: <em>can simple, systematic strategies beat the crypto market after real costs?</em></p>
+      <p>To answer it honestly I needed the whole apparatus — data pipelines, a backtester, a way to promote only strategies that survive out-of-sample, live micro-orders to feel real slippage, and monitoring to catch myself fooling myself. So I built that. Then I let it run on real exchanges at tiny size and read the results without flinching.</p>
+
+      <h2>The machine</h2>
+      <p>The system runs itself on a weekly cycle — strategies are discovered, tested, promoted, and demoted with almost no manual input:</p>
+    </div>
+
+    <ol class="steps">
+      <li><strong>Discover &amp; backtest.</strong> Each strategy is scaffolded, then walk-forward backtested on candle history. Gate 1: win rate ≥ 45%, Sharpe ≥ 0.5, max drawdown ≤ 30%, n ≥ 20 trades.</li>
+      <li><strong>Out-of-sample gate.</strong> Survivors are re-tested on the most recent 90 days they've never seen. Gate 2 is stricter (Sharpe ≥ 0.9, expectancy ≥ 0.2%/trade). Two windows must both pass — the guard against overfitting.</li>
+      <li><strong>Paper, then tiny live.</strong> Promoted strategies trade on real exchanges at ₩5K per position — small enough to be safe, real enough to pay true fees and slippage.</li>
+      <li><strong>Condition gate.</strong> Before every signal the system reads the market regime (trend, volatility, RSI) and skips strategies whose learned profile says "you lose in conditions like these" — but stays fail-open when the data is thin, so no loop ever goes silent.</li>
+      <li><strong>Health &amp; auto-demote.</strong> Every six hours a health check watches equity, win rate, drawdown, and stuck positions; a kill-switch and auto-demotion pull any strategy that breaks its drawdown limit.</li>
+    </ol>
+
+    <div class="prose">
+      <p>Under the hood: two exchanges, seven signal engines (mean-reversion, RSI, momentum, Donchian breakout, a Fourier method, a volatility-regime filter…), online weight adaptation that re-weights the engines from realized outcomes, and per-symbol risk limits. The engine weights don't sit still — they chase whatever's been working:</p>
+    </div>
+    <figure class="wide">
+      <img src="/media/bzp/p-3.jpg" alt="Engine weight evolution over time, mean-reversion dominating" />
+      <figcaption><b>Online learning, and its trap.</b> The adaptive weights drifted toward mean-reversion (60–78% of the book). In a trending, falling market that's exactly the wrong bet — the learning over-fit to a regime that then flipped.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <h2>The result — and why</h2>
+      <p>When I backtested every setup method I could think of across both exchanges, the verdict was blunt and consistent:</p>
+    </div>
+    <figure class="wide">
+      <img src="/media/bzp/p-5.jpg" alt="Backtest results showing all methods have negative average expectancy" />
+      <figcaption><b>All 32 method-and-exchange combinations had negative average expectancy.</b> Even the single best parameter combo (a breakout on UNI, +2.2%/trade) had only 20 trades behind it — not enough to trust. This is the real lesson: after fees and slippage, naive edges evaporate.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <p>My own diagnosis of what went wrong — written before I knew I'd ever show it publicly:</p>
+      <ul class="plain">
+        <li><strong>Mean-reversion over-weighting.</strong> Online learning let one engine dominate; it needed hard per-engine weight caps.</li>
+        <li><strong>Negative expectancy after costs.</strong> Sub-50% win rates plus real fees means long losing streaks in bad regimes.</li>
+        <li><strong>Over-trading.</strong> 346,000 analysis steps produced ~8,000 trades in 20 days — turnover that magnifies every cost. The fix was an event-driven loop that only acts on high-conviction setups.</li>
+        <li><strong>Fragile infrastructure.</strong> The Bithumb API changed format mid-run and killed the KRW loop — so I moved the primary market to Upbit.</li>
+      </ul>
+    </div>
+
+    <div class="prose">
+      <h2>What I took from it</h2>
+      <p>The honest headline is that I <em>didn't</em> find a money-making strategy. But I don't think that's the failure it sounds like. Markets are close to a fair coin after costs, and most retail edges are noise — the valuable thing was building the machine rigorous enough to <strong>prove that to myself with data</strong>, instead of believing a pretty backtest and lighting real money on fire.</p>
+      <p>What I actually built is the part that transfers: a full research loop with honest out-of-sample gates, regime-aware risk control, and monitoring designed to catch self-deception. And I learned to report a clean negative result plainly — which, for anything I do next, matters more than a lucky curve ever would.</p>
+      <a class="pdf-btn" href="/media/bzp/report.pdf">Read the full trading report (PDF) →</a>
+    </div>
+  </section>
+
+  <a class="backlink" href="/#work">← All work</a>
+</main>
+
+<footer>
+  <div class="row">
+    <span class="mono">Bosun · Theo · Park</span>
+    <span class="lit mono" style="letter-spacing:.1em">On the side of living things</span>
+    <span class="mono" style="opacity:.7">© 2026 · bosunpark.xyz</span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById('themeToggle');
+    function apply(t){ root.setAttribute('data-theme', t); btn.textContent = t === 'dark' ? '☀' : '☾';
+      try { localStorage.setItem('theme', t); } catch(e){} }
+    try { var s = localStorage.getItem('theme'); if (s) apply(s); } catch(e){}
+    btn.addEventListener('click', function(){
+      var cur = root.getAttribute('data-theme');
+      var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      apply(isDark ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>
