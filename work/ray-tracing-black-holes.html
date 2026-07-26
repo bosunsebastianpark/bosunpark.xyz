@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ray-Tracing Black Holes — Bosun Park</title>
+<meta name="description" content="A from-scratch general-relativistic ray tracer for Schwarzschild and Kerr black holes: shadows, gravitational lensing, and Doppler-boosted accretion disks." />
+<style>
+  :root {
+    --ground: #eef1f6; --panel: #ffffff; --ink: #131a26; --ink-soft: #4c586b;
+    --line: #dce2ec; --gold: #c07d16; --gold-bright: #f6ad3c; --steel: #56769a;
+    --font-display: "Didot", "Hoefler Text", "Playfair Display", Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+    --maxw: 940px; --readw: 680px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ground: #0b0f17; --panel: #121824; --ink: #eef2f8; --ink-soft: #9aa8bd;
+      --line: #222c3c; --gold: #f6ad3c; --gold-bright: #ffc061; --steel: #7d9cbe; }
+  }
+  :root[data-theme="dark"] { --ground: #0b0f17; --panel: #121824; --ink: #eef2f8; --ink-soft: #9aa8bd;
+    --line: #222c3c; --gold: #f6ad3c; --gold-bright: #ffc061; --steel: #7d9cbe; }
+  :root[data-theme="light"] { --ground: #eef1f6; --panel: #ffffff; --ink: #131a26; --ink-soft: #4c586b;
+    --line: #dce2ec; --gold: #c07d16; --gold-bright: #f6ad3c; --steel: #56769a; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--font-body); font-size: 17px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; border-radius: 2px; }
+  .mono { font-family: var(--font-mono); letter-spacing: .16em; text-transform: uppercase; font-size: .7rem; }
+
+  nav { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 1.4rem;
+    padding: .95rem clamp(1.2rem, 5vw, 3.5rem);
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: saturate(1.3) blur(14px); border-bottom: 1px solid var(--line); color: var(--ink); }
+  nav .brand { font-weight: 600; margin-right: auto; font-size: 1.02rem; color: var(--ink); }
+  nav .brand .lit { color: var(--gold); }
+  nav a.link { color: var(--ink-soft); font-size: .82rem; letter-spacing: .04em; }
+  nav a.link:hover { color: var(--gold); text-decoration: none; }
+  @media (max-width: 640px) { nav a.link.hideable { display: none; } }
+  .theme-toggle { background: none; border: 1px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; width: 32px; height: 32px; cursor: pointer; font-size: .95rem;
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+
+  main { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1.2rem, 5vw, 3.5rem); }
+  .backlink { display: inline-block; margin: 2rem 0 0; color: var(--ink-soft); font-family: var(--font-mono);
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
+  .backlink:hover { color: var(--gold); text-decoration: none; }
+
+  header.head { padding: 1.6rem 0 2rem; }
+  .kicker { color: var(--gold); display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 1.1rem; }
+  .kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, var(--gold-bright), var(--gold)); box-shadow: 0 0 8px rgba(246,173,60,.5); }
+  h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.4rem, 6.5vw, 4rem);
+    line-height: 1.04; letter-spacing: -.015em; margin: 0 0 .8rem; text-wrap: balance; }
+  .dek { font-size: clamp(1.05rem, 2.3vw, 1.3rem); color: var(--ink-soft); max-width: 40ch; margin: 0 0 1.4rem; line-height: 1.4; }
+  .meta { display: flex; flex-wrap: wrap; gap: .5rem .6rem; }
+  .chip { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--steel); border: 1px solid var(--line); border-radius: 999px; padding: .3rem .7rem; }
+
+  figure { margin: 0 0 .4rem; }
+  .hero-fig img { width: 100%; border-radius: 8px; display: block; background: #000; box-shadow: var(--shadow, 0 12px 40px rgba(0,0,0,.25)); }
+  figcaption { color: var(--ink-soft); font-size: .86rem; margin-top: .7rem; line-height: 1.5; max-width: var(--readw); }
+  figcaption b { color: var(--ink); font-weight: 600; }
+
+  section.body { padding: 2.6rem 0; }
+  .prose { max-width: var(--readw); }
+  .prose h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.5rem, 3.6vw, 2rem);
+    letter-spacing: -.01em; margin: 2.4rem 0 1rem; }
+  .prose h2:first-child { margin-top: 0; }
+  .prose p { color: var(--ink-soft); margin: 0 0 1.15rem; }
+  .prose strong { color: var(--ink); }
+  ol.steps { max-width: var(--readw); margin: 0 0 1.2rem; padding: 0; list-style: none; counter-reset: s; display: grid; gap: .9rem; }
+  ol.steps li { position: relative; padding-left: 2.6rem; color: var(--ink-soft); counter-increment: s; }
+  ol.steps li::before { content: counter(s); position: absolute; left: 0; top: -.1em;
+    width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 1px solid var(--gold);
+    color: var(--gold); font-family: var(--font-mono); font-size: .78rem;
+    display: flex; align-items: center; justify-content: center; }
+  ol.steps li strong { color: var(--ink); }
+
+  .eq { max-width: var(--readw); background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--gold);
+    border-radius: 6px; padding: 1rem 1.2rem; margin: 0 0 1.4rem; overflow-x: auto;
+    font-family: var(--font-mono); font-size: .92rem; color: var(--ink); line-height: 1.7; }
+  .eq .lbl { display: block; color: var(--gold); font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .4rem; }
+
+  .figpair { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.6rem 0 .4rem; }
+  .figtrio { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin: 1.6rem 0 .4rem; }
+  .figpair img, .figtrio img, .wide img { width: 100%; border-radius: 8px; display: block; background: #000; }
+  .wide { margin: 1.8rem 0 .4rem; }
+  @media (max-width: 620px) { .figpair, .figtrio { grid-template-columns: 1fr; } }
+
+  .pdf-btn { display: inline-flex; align-items: center; gap: .6rem; background: var(--gold); color: #fff;
+    font-weight: 600; font-size: .92rem; padding: .7rem 1.3rem; border-radius: 8px; margin-top: .6rem; }
+  .pdf-btn:hover { text-decoration: none; transform: translateY(-1px); }
+
+  footer { border-top: 1px solid var(--line); padding: 2.4rem 0 3.5rem; margin-top: 2rem; color: var(--ink-soft); }
+  footer .row { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1.2rem, 5vw, 3.5rem);
+    display: flex; flex-wrap: wrap; gap: .8rem 1.5rem; justify-content: space-between; align-items: baseline; }
+  footer .lit { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/">Bo<span class="lit">sun</span> Park</a>
+  <a class="link hideable" href="/#work">Work</a>
+  <a class="link" href="/#contact">Contact</a>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle light / dark">☾</button>
+</nav>
+
+<main>
+  <a class="backlink" href="/#work">← All work</a>
+
+  <header class="head">
+    <span class="kicker mono">Selected Work · General Relativity</span>
+    <h1>Ray-Tracing Black Holes</h1>
+    <p class="dek">Rendering Schwarzschild and Kerr black holes from the metric up — shadow, lensing, and a Doppler-boosted disk.</p>
+    <div class="meta">
+      <span class="chip">Python · SciPy</span>
+      <span class="chip">Null geodesics · RK45</span>
+      <span class="chip">Schwarzschild &amp; Kerr</span>
+      <span class="chip">PHYS 161 · UC San Diego</span>
+    </div>
+  </header>
+
+  <figure class="hero-fig">
+    <img src="/media/gr/sm.jpg" alt="Rendered Schwarzschild black hole with a Doppler-boosted accretion disk lensed above and below the shadow, Milky Way in the background" />
+    <figcaption><b>The shadow, the disk, and the lensed sky.</b> A non-spinning (Schwarzschild) black hole with a thin orbiting disk, rendered against a real Milky Way all-sky map. Light bending wraps the far side of the disk up and over the shadow — the same effect that made <em>Interstellar</em>'s Gargantua look the way it does.</figcaption>
+  </figure>
+
+  <section class="body">
+    <div class="prose">
+      <h2>The idea</h2>
+      <p>This was my final project for <strong>PHYS 161 (Black Holes)</strong> with Prof. George Fuller. The goal was to take the general relativity we'd been doing on paper — metrics, Christoffel symbols, the geodesic equation — and turn it into <strong>actual images</strong> of a black hole: the shadow, an accretion disk, and a distorted background sky.</p>
+      <p>I built a small ray tracer from scratch for two spacetimes — the non-spinning <strong>Schwarzschild</strong> black hole and the spinning <strong>Kerr</strong> black hole — so I could see directly how spin, frame dragging, and relativistic Doppler shifts change what a black hole looks like.</p>
+
+      <h2>How it works — a four-box pipeline</h2>
+    </div>
+
+    <ol class="steps">
+      <li><strong>Pick a spacetime, build the metric.</strong> Implement <span class="mono" style="text-transform:none;letter-spacing:0">g<sub>μν</sub>(r,θ)</span>. For Schwarzschild I hard-code the analytic Christoffel symbols; for Kerr I take finite-difference derivatives of the metric to build them approximately.</li>
+      <li><strong>Fire a photon per pixel.</strong> Place a camera at radius R, build a local orthonormal tetrad, and for each pixel construct an initial photon four-momentum in the camera frame, then transform it into coordinates.</li>
+      <li><strong>Integrate the null geodesic.</strong> Solve the geodesic equation as a first-order system with RK45 (SciPy's <span class="mono" style="text-transform:none;letter-spacing:0">solve_ivp</span>), watching for three fates: it falls through the horizon, it hits the disk, or it escapes to the sky.</li>
+      <li><strong>Color the pixel.</strong> Horizon hits are black; disk hits get a base color scaled by the Doppler factor; escaping rays are mapped onto a rainbow test-sphere or the Milky Way sky by their final direction.</li>
+    </ol>
+
+    <div class="prose">
+      <p>The two spacetimes are just two metrics feeding the same machine. Schwarzschild, in the usual coordinates:</p>
+    </div>
+    <div class="eq"><span class="lbl">Schwarzschild line element</span>ds² = −(1 − 2M/r) dt² + (1 − 2M/r)⁻¹ dr² + r² dθ² + r² sin²θ dφ²</div>
+    <div class="prose">
+      <p>Light follows <strong>null geodesics</strong> — paths with <span class="mono" style="text-transform:none;letter-spacing:0">g<sub>μν</sub> kᵘ kᵛ = 0</span> — and to color the disk I compute a relativistic redshift/Doppler factor from the four-velocities of the gas and the observer:</p>
+    </div>
+    <div class="eq"><span class="lbl">Doppler / redshift factor</span>g = ν_obs / ν_emit &nbsp;→&nbsp; g &gt; 1 brightens &amp; blueshifts (gas moving toward you), g &lt; 1 dims &amp; reddens (moving away)</div>
+
+    <div class="prose">
+      <h2>Results</h2>
+      <p>To make the lensing obvious, I first rendered the black holes against a <strong>rainbow-striped sphere</strong>. The difference between no spin and spin is immediate:</p>
+    </div>
+
+    <div class="figpair">
+      <figure><img src="/media/gr/sh.jpg" alt="Schwarzschild black hole against a horizontal rainbow background — symmetric shadow" /></figure>
+      <figure><img src="/media/gr/kh.jpg" alt="Kerr black hole against a horizontal rainbow background — shadow shifted to one side" /></figure>
+    </div>
+    <figcaption style="max-width:none"><b>Left — Schwarzschild (no spin):</b> the shadow is a perfect circle and the color bands bend symmetrically around it. <b>Right — Kerr (spinning):</b> the shadow is pushed to one side and the lensing loses its symmetry. That asymmetry <em>is</em> frame dragging — the spinning black hole dragging spacetime around with it.</figcaption>
+
+    <div class="prose">
+      <p>Sweeping the Kerr spin parameter <em>a</em> from zero upward, you can watch the shadow deform and drift:</p>
+    </div>
+    <div class="figtrio">
+      <figure><img src="/media/gr/spin0.jpg" alt="Kerr spin a=0" /><figcaption style="text-align:center">a = 0</figcaption></figure>
+      <figure><img src="/media/gr/spin5.jpg" alt="Kerr spin a=0.5" /><figcaption style="text-align:center">a = 0.5</figcaption></figure>
+      <figure><img src="/media/gr/spin9.jpg" alt="Kerr spin a=0.9" /><figcaption style="text-align:center">a = 0.9</figcaption></figure>
+    </div>
+
+    <div class="prose">
+      <p>Swap the rainbow for a real Milky Way sky and add the Doppler-boosted disk, and it starts to look like the real thing:</p>
+    </div>
+    <figure class="wide">
+      <img src="/media/gr/km.jpg" alt="Kerr black hole with Doppler-boosted accretion disk against the Milky Way" />
+      <figcaption><b>Kerr, with the disk.</b> One side of the ring runs bright and blue where the gas orbits toward the camera; the other side fades and reddens as it recedes — relativistic Doppler beaming, straight out of the four-velocities.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <h2>What I took from it</h2>
+      <p>Working directly with the metric, the Christoffel symbols, and the geodesic equation is what finally connected the <em>math</em> of general relativity to something I could see. Changing from Schwarzschild to Kerr visibly changes the light paths — and therefore the shape and position of the shadow. Building the Doppler factor out of four-velocities made relativistic beaming concrete, because I could watch one side of the disk brighten and the other fade. Understanding a system until I feel part of it — this is what that means for me.</p>
+      <a class="pdf-btn" href="/media/gr/writeup.pdf">Read the full write-up (PDF) →</a>
+    </div>
+  </section>
+
+  <a class="backlink" href="/#work">← All work</a>
+</main>
+
+<footer>
+  <div class="row">
+    <span class="mono">Bosun · Theo · Park</span>
+    <span class="lit mono" style="letter-spacing:.1em">On the side of living things</span>
+    <span class="mono" style="opacity:.7">© 2026 · bosunpark.xyz</span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById('themeToggle');
+    function apply(t){ root.setAttribute('data-theme', t); btn.textContent = t === 'dark' ? '☀' : '☾';
+      try { localStorage.setItem('theme', t); } catch(e){} }
+    try { var s = localStorage.getItem('theme'); if (s) apply(s); } catch(e){}
+    btn.addEventListener('click', function(){
+      var cur = root.getAttribute('data-theme');
+      var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      apply(isDark ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>
