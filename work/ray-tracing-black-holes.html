@@ -135,7 +135,7 @@
     <div class="prose">
       <h2>The idea</h2>
       <p>This was my final project for <strong>PHYS 161 (Black Holes)</strong> with Prof. George Fuller. The goal was to take the general relativity we'd been doing on paper — metrics, Christoffel symbols, the geodesic equation — and turn it into <strong>actual images</strong> of a black hole: the shadow, an accretion disk, and a distorted background sky.</p>
-      <p>I built a small ray tracer from scratch for two spacetimes — the non-spinning <strong>Schwarzschild</strong> black hole and the spinning <strong>Kerr</strong> black hole — so I could see directly how spin, frame dragging, and relativistic Doppler shifts change what a black hole looks like.</p>
+      <p>I built a small ray tracer from scratch for two spacetimes — the non-spinning <strong>Schwarzschild</strong> black hole and the spinning <strong>Kerr</strong> black hole — so I could see directly how spin, frame dragging, and relativistic Doppler shifts change what a black hole looks like. The north star was <em>Interstellar</em> (2014): I wanted those visuals, but coming out of my own code, from the equations up.</p>
 
       <h2>How it works — a four-box pipeline</h2>
     </div>
@@ -143,7 +143,7 @@
     <ol class="steps">
       <li><strong>Pick a spacetime, build the metric.</strong> Implement <span class="mono" style="text-transform:none;letter-spacing:0">g<sub>μν</sub>(r,θ)</span>. For Schwarzschild I hard-code the analytic Christoffel symbols; for Kerr I take finite-difference derivatives of the metric to build them approximately.</li>
       <li><strong>Fire a photon per pixel.</strong> Place a camera at radius R, build a local orthonormal tetrad, and for each pixel construct an initial photon four-momentum in the camera frame, then transform it into coordinates.</li>
-      <li><strong>Integrate the null geodesic.</strong> Solve the geodesic equation as a first-order system with RK45 (SciPy's <span class="mono" style="text-transform:none;letter-spacing:0">solve_ivp</span>), watching for three fates: it falls through the horizon, it hits the disk, or it escapes to the sky.</li>
+      <li><strong>Integrate the null geodesic.</strong> Solve the geodesic equation as a first-order system — first with a hand-written Euler step, then upgraded to RK45 (SciPy's <span class="mono" style="text-transform:none;letter-spacing:0">solve_ivp</span>) for accuracy — watching for three fates: it falls through the horizon (radius <span class="mono" style="text-transform:none;letter-spacing:0">2M</span> for Schwarzschild, <span class="mono" style="text-transform:none;letter-spacing:0">M + √(M² − a²)</span> for Kerr), it hits the disk, or it escapes to the sky.</li>
       <li><strong>Color the pixel.</strong> Horizon hits are black; disk hits get a base color scaled by the Doppler factor; escaping rays are mapped onto a rainbow test-sphere or the Milky Way sky by their final direction.</li>
     </ol>
 
@@ -151,6 +151,11 @@
       <p>The two spacetimes are just two metrics feeding the same machine. Schwarzschild, in the usual coordinates:</p>
     </div>
     <div class="eq"><span class="lbl">Schwarzschild line element</span>ds² = −(1 − 2M/r) dt² + (1 − 2M/r)⁻¹ dr² + r² dθ² + r² sin²θ dφ²</div>
+    <div class="prose">
+      <p>Kerr adds the spin <em>a</em> — and with it a cross term <span class="mono" style="text-transform:none;letter-spacing:0">dt dφ</span> that mixes time and rotation. That single term is <strong>frame dragging</strong>:</p>
+    </div>
+    <div class="eq"><span class="lbl">Kerr line element · Boyer–Lindquist</span>ds² = −(1 − 2Mr/Σ) dt² − (4Mar·sin²θ / Σ) dt dφ + (Σ/Δ) dr² + Σ dθ² + (r² + a² + 2Ma²r·sin²θ / Σ) sin²θ dφ²
+<span style="opacity:.65">with&nbsp; Σ = r² + a²cos²θ,&nbsp; Δ = r² − 2Mr + a²</span></div>
     <div class="prose">
       <p>Light follows <strong>null geodesics</strong> — paths with <span class="mono" style="text-transform:none;letter-spacing:0">g<sub>μν</sub> kᵘ kᵛ = 0</span> — and to color the disk I compute a relativistic redshift/Doppler factor from the four-velocities of the gas and the observer:</p>
     </div>
