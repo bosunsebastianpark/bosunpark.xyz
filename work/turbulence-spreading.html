@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spreading of a 2D Vorticity Patch — Bosun Park</title>
+<meta name="description" content="How a localized patch of two-dimensional turbulence spreads, why it's subdiffusive, and what its coherent structure has to do with turbulence spreading in fusion devices. Work with Prof. P. H. Diamond." />
+<style>
+  :root {
+    --ground: #eef1f6; --panel: #ffffff; --ink: #131a26; --ink-soft: #4c586b;
+    --line: #dce2ec; --gold: #c07d16; --gold-bright: #f6ad3c; --steel: #56769a;
+    --font-display: "Didot", "Hoefler Text", "Playfair Display", Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+    --maxw: 940px; --readw: 680px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ground: #0b0f17; --panel: #121824; --ink: #eef2f8; --ink-soft: #9aa8bd;
+      --line: #222c3c; --gold: #f6ad3c; --gold-bright: #ffc061; --steel: #7d9cbe; }
+  }
+  :root[data-theme="dark"] { --ground: #0b0f17; --panel: #121824; --ink: #eef2f8; --ink-soft: #9aa8bd;
+    --line: #222c3c; --gold: #f6ad3c; --gold-bright: #ffc061; --steel: #7d9cbe; }
+  :root[data-theme="light"] { --ground: #eef1f6; --panel: #ffffff; --ink: #131a26; --ink-soft: #4c586b;
+    --line: #dce2ec; --gold: #c07d16; --gold-bright: #f6ad3c; --steel: #56769a; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--font-body); font-size: 17px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; border-radius: 2px; }
+  .mono { font-family: var(--font-mono); letter-spacing: .16em; text-transform: uppercase; font-size: .7rem; }
+
+  nav { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 1.4rem;
+    padding: .95rem clamp(1.2rem, 5vw, 3.5rem);
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: saturate(1.3) blur(14px); border-bottom: 1px solid var(--line); color: var(--ink); }
+  nav .brand { font-weight: 600; margin-right: auto; font-size: 1.02rem; color: var(--ink); }
+  nav .brand .lit { color: var(--gold); }
+  nav a.link { color: var(--ink-soft); font-size: .82rem; letter-spacing: .04em; }
+  nav a.link:hover { color: var(--gold); text-decoration: none; }
+  .theme-toggle { background: none; border: 1px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; width: 32px; height: 32px; cursor: pointer; font-size: .95rem;
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+
+  main { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1.2rem, 5vw, 3.5rem); }
+  .backlink { display: inline-block; margin: 2rem 0 0; color: var(--ink-soft); font-family: var(--font-mono);
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
+  .backlink:hover { color: var(--gold); text-decoration: none; }
+
+  header.head { padding: 1.6rem 0 2rem; }
+  .kicker { color: var(--gold); display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 1.1rem; }
+  .kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, var(--gold-bright), var(--gold)); box-shadow: 0 0 8px rgba(246,173,60,.5); }
+  h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.3rem, 6vw, 3.8rem);
+    line-height: 1.05; letter-spacing: -.015em; margin: 0 0 .8rem; text-wrap: balance; }
+  .dek { font-size: clamp(1.05rem, 2.3vw, 1.3rem); color: var(--ink-soft); max-width: 44ch; margin: 0 0 1.4rem; line-height: 1.42; }
+  .meta { display: flex; flex-wrap: wrap; gap: .5rem .6rem; }
+  .chip { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--steel); border: 1px solid var(--line); border-radius: 999px; padding: .3rem .7rem; }
+  .authored { margin-top: 1.1rem; color: var(--ink-soft); font-size: .95rem; }
+  .authored b { color: var(--ink); font-weight: 600; }
+
+  figure { margin: 0 0 .4rem; }
+  .hero-fig img { width: 100%; border-radius: 8px; display: block; border: 1px solid var(--line); background: #fff; }
+  figcaption { color: var(--ink-soft); font-size: .86rem; margin-top: .7rem; line-height: 1.5; max-width: var(--readw); }
+  figcaption b { color: var(--ink); font-weight: 600; }
+
+  section.body { padding: 2.4rem 0; }
+  .prose { max-width: var(--readw); }
+  .prose h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.5rem, 3.6vw, 2rem);
+    letter-spacing: -.01em; margin: 2.4rem 0 1rem; }
+  .prose h2:first-child { margin-top: 0; }
+  .prose p { color: var(--ink-soft); margin: 0 0 1.15rem; }
+  .prose strong { color: var(--ink); }
+  .regimes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.6rem 0 .4rem; max-width: var(--readw); }
+  @media (max-width: 560px) { .regimes { grid-template-columns: 1fr; } }
+  .regime { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 1.1rem 1.2rem; }
+  .regime .a { font-family: var(--font-display); font-size: 1.7rem; color: var(--gold); }
+  .regime h3 { margin: .3rem 0 .3rem; font-size: 1.02rem; }
+  .regime p { margin: 0; color: var(--ink-soft); font-size: .92rem; line-height: 1.5; }
+
+  .inline-fig { max-width: 360px; margin: 1.6rem 0 .4rem; }
+  .inline-fig img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+
+  .pdf-btn { display: inline-flex; align-items: center; gap: .6rem; background: var(--gold); color: #fff;
+    font-weight: 600; font-size: .92rem; padding: .7rem 1.3rem; border-radius: 8px; margin-top: .6rem; }
+  .pdf-btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .note { max-width: var(--readw); border-left: 2px solid var(--line); padding-left: 1.1rem; color: var(--ink-soft); font-size: .95rem; }
+
+  footer { border-top: 1px solid var(--line); padding: 2.4rem 0 3.5rem; margin-top: 2rem; color: var(--ink-soft); }
+  footer .row { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1.2rem, 5vw, 3.5rem);
+    display: flex; flex-wrap: wrap; gap: .8rem 1.5rem; justify-content: space-between; align-items: baseline; }
+  footer .lit { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/">Bo<span class="lit">sun</span> Park</a>
+  <a class="link" href="/#research">Research</a>
+  <a class="link" href="/#contact">Contact</a>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle light / dark">☾</button>
+</nav>
+
+<main>
+  <a class="backlink" href="/#research">← Research</a>
+
+  <header class="head">
+    <span class="kicker mono">Research · Plasma &amp; Turbulence</span>
+    <h1>How a patch of turbulence spreads</h1>
+    <p class="dek">A localized blob of 2D turbulence spreads slower than diffusion — and how slowly turns out to be a fingerprint of its own structure.</p>
+    <div class="meta">
+      <span class="chip">Dedalus · 2D Navier–Stokes</span>
+      <span class="chip">High-resolution simulation</span>
+      <span class="chip">Fusion-relevant</span>
+    </div>
+    <p class="authored">Ongoing work with <b>Prof. P. H. Diamond</b> (UC San Diego) · presented at <b>APS DPP 2026</b> · full paper in preparation.</p>
+  </header>
+
+  <figure class="hero-fig">
+    <img src="/media/turb/field.jpg" alt="A spread field of two-dimensional turbulence: red and blue vorticity filaments with a few coherent vortices" />
+    <figcaption><b>Two-dimensional turbulence.</b> A vorticity field (red positive, blue negative) after a localized patch has spread. A handful of long-lived coherent vortices survive inside a sea of fine-scale filaments — and which of those two wins turns out to control how the patch grows.</figcaption>
+  </figure>
+
+  <section class="body">
+    <div class="prose">
+      <h2>The question</h2>
+      <p>In a fusion device, turbulence doesn't stay where it's driven — it <em>spreads</em> radially, carrying transport into regions that should be quiet. A clean way to study that is the simplest version of the problem: drop a localized patch of two-dimensional turbulence into still fluid and watch it relax. How fast does it grow, and <strong>what carries the growth</strong>?</p>
+
+      <h2>The method</h2>
+      <p>I run high-resolution simulations of the 2D Navier–Stokes equations in <strong>Dedalus</strong>, starting from an isolated vorticity patch, and track its enstrophy-weighted radius over time — R<sub>eff</sub> ∝ t<sup>α</sup>. The exponent α is the whole story.</p>
+    </div>
+
+    <figure class="inline-fig">
+      <img src="/media/turb/patch.jpg" alt="A smooth localized vorticity patch, the initial condition" />
+      <figcaption>The starting point: a single localized vorticity patch.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <p>The spreading is <strong>subdiffusive</strong> — α &lt; ½. That already says something: it's slower than ordinary diffusion (α = ½) and nowhere near ballistic, free-streaming growth (α = 1). Something is holding the patch back.</p>
+
+      <h2>The picture: structure sets the rate</h2>
+      <p>The exponent lands in one of two regimes, and each corresponds to a <em>different kind of internal structure</em>:</p>
+    </div>
+
+    <div class="regimes">
+      <div class="regime">
+        <div class="a">α = ⅓</div>
+        <h3>The "puff"</h3>
+        <p>Coherent vortex <strong>dipoles</strong> survive and ferry vorticity outward in near-ballistic flights. Structure intact, faster growth.</p>
+      </div>
+      <div class="regime">
+        <div class="a">α = ¼</div>
+        <h3>The "spot"</h3>
+        <p>The patch is shredded into an <strong>incoherent cloud</strong> of fine filaments that mix diffusively. Structure destroyed, slower growth.</p>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>So α is a <strong>readout of the patch's coherent structure</strong> — whether transport is carried by ballistic dipoles or an incoherent cloud. And I can select which regime happens with a single knob: the <strong>scale of an applied stirring relative to the patch</strong>. Small-scale forcing shreds the patch toward the spot (α → ¼); forcing at the patch's own scale preserves the dipoles and keeps the puff (α → ⅓).</p>
+
+      <h2>Two lenses on the same result</h2>
+      <p>The exponents fall out of two independent frameworks, which is part of why the picture is convincing:</p>
+      <ul style="max-width:var(--readw); color:var(--ink-soft)">
+        <li><strong>Conserved momentum invariants</strong> — a per-length impulse constraint gives the puff's ⅓, an angular-impulse constraint gives the spot's ¼.</li>
+        <li><strong>Nonlinear, density-dependent diffusion</strong> — treating the vorticity like a porous-medium (Barenblatt) diffusion with D ∝ ω<sup>m</sup> reproduces the same subdiffusive growth.</li>
+      </ul>
+
+      <h2>Toward plasma</h2>
+      <p>The natural next step is to magnetize the problem: extend from neutral fluid to <strong>drift-wave turbulence</strong> (the Hasegawa–Mima and Hasegawa–Wakatani models), where a new player enters — the patch can <em>radiate drift waves</em>, and wave radiation competes with turbulent mixing to spread the enstrophy. That's the branch I'm building now with the fusion side of the project.</p>
+
+      <h2>Why it matters</h2>
+      <p>If the spreading rate is set by <em>structure</em> rather than by intensity alone, then models of turbulence spreading in confinement devices need to track more than an averaged intensity front — they need to know whether coherent eddies survive. That's the implication we're chasing.</p>
+
+      <a class="pdf-btn" href="/media/turb/abstract.pdf">Read the APS 2026 abstract (PDF) →</a>
+      <p class="note" style="margin-top:1.4rem">This page summarizes work presented in the co-authored APS 2026 abstract. The figures here are generic illustrations from method-development runs; the full quantitative results and the paper will be linked once it's published.</p>
+    </div>
+  </section>
+
+  <a class="backlink" href="/#research">← Research</a>
+</main>
+
+<footer>
+  <div class="row">
+    <span class="mono">Bosun · Theo · Park</span>
+    <span class="lit mono" style="letter-spacing:.1em">On the side of living things</span>
+    <span class="mono" style="opacity:.7">© 2026 · bosunpark.xyz</span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById('themeToggle');
+    function apply(t){ root.setAttribute('data-theme', t); btn.textContent = t === 'dark' ? '☀' : '☾';
+      try { localStorage.setItem('theme', t); } catch(e){} }
+    try { var s = localStorage.getItem('theme'); if (s) apply(s); } catch(e){}
+    btn.addEventListener('click', function(){
+      var cur = root.getAttribute('data-theme');
+      var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      apply(isDark ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>
