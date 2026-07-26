@@ -1,1 +1,6 @@
 .DS_Store
+
+# working image sources — the live site embeds the photo in index.html, so these aren't needed in the repo
+main_pic.JPG
+main_pic2.jpg
+images/
